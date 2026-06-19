@@ -1,0 +1,2951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#080807">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="3 Accounts">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>The Three Accounts</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#080807;
+  --surface:#0f0f0e;
+  --surface2:#141413;
+  --border:#1c1c1a;
+  --border2:#252522;
+  --gold:#c4a24a;
+  --gold-dim:#6e5a2a;
+  --gold-glow:rgba(196,162,74,0.1);
+  --T:#5b8fa8;
+  --T-bg:rgba(91,143,168,0.07);
+  --E:#7a9e6e;
+  --E-bg:rgba(122,158,110,0.07);
+  --R:#a07060;
+  --R-bg:rgba(160,112,96,0.07);
+  --text:#ccc8bc;
+  --text-dim:#5e5c54;
+  --text-faint:#2e2d28;
+  --white:#ede9e0;
+  --danger:#a05050;
+}
+
+html{font-size:15px;scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Cormorant Garamond',Georgia,serif;
+  min-height:100vh;
+}
+
+/* ─── LAYOUT ─── */
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR NAV */
+.sidebar{
+  width:220px;
+  min-width:220px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:32px 0 24px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+}
+
+.sidebar-logo{
+  padding:0 24px 28px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:20px;
+}
+
+.logo-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.3em;
+  color:var(--gold-dim);
+  text-transform:uppercase;
+  display:block;
+  margin-bottom:6px;
+}
+
+.logo-name{
+  font-size:1.2rem;
+  font-weight:300;
+  color:var(--white);
+  letter-spacing:0.04em;
+}
+
+.logo-name em{font-style:italic;color:var(--gold)}
+
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 24px;
+  cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  transition:all 0.2s;
+  border-left:2px solid transparent;
+}
+
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-glow)}
+.nav-item .nav-icon{font-size:12px;width:16px;text-align:center}
+
+.sidebar-footer{
+  margin-top:auto;
+  padding:20px 24px 0;
+  border-top:1px solid var(--border);
+}
+
+.sidebar-date{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.15em;
+  color:var(--text-faint);
+  line-height:1.8;
+}
+
+/* MAIN CONTENT */
+.main{flex:1;overflow-y:auto;padding:40px 48px 80px;max-width:900px}
+
+/* ─── VIEWS ─── */
+.view{display:none}
+.view.active{display:block}
+
+/* ─── PAGE HEADER ─── */
+.page-header{margin-bottom:36px;animation:fadeUp 0.5s ease both}
+
+.page-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.35em;
+  color:var(--gold-dim);
+  text-transform:uppercase;
+  display:block;
+  margin-bottom:10px;
+}
+
+.page-title{
+  font-size:clamp(1.8rem,4vw,2.6rem);
+  font-weight:300;
+  color:var(--white);
+  line-height:1.1;
+}
+
+.page-title em{font-style:italic;color:var(--gold)}
+
+/* ─── GOAL ANCHOR ─── */
+.goal-anchor{
+  background:linear-gradient(135deg,rgba(196,162,74,0.07),rgba(196,162,74,0.02));
+  border:1px solid var(--gold-dim);
+  border-radius:3px;
+  padding:20px 24px;
+  margin-bottom:32px;
+  position:relative;
+  animation:fadeUp 0.5s 0.05s ease both;
+}
+
+.goal-anchor::before{
+  content:'';
+  position:absolute;
+  left:0;top:20%;
+  height:60%;width:2px;
+  background:var(--gold);
+  border-radius:0 2px 2px 0;
+}
+
+.field-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.3em;
+  color:var(--gold);
+  text-transform:uppercase;
+  display:block;
+  margin-bottom:8px;
+}
+
+.goal-input{
+  width:100%;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--white);
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.05rem;
+  font-style:italic;
+  font-weight:300;
+  resize:none;
+  line-height:1.5;
+}
+
+.goal-input::placeholder{color:var(--text-faint);font-style:italic}
+
+/* ─── ACCOUNT CARDS ─── */
+.account-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  margin-bottom:24px;
+  overflow:hidden;
+  animation:fadeUp 0.5s ease both;
+}
+
+.account-card:nth-child(1){animation-delay:0.1s}
+.account-card:nth-child(2){animation-delay:0.18s}
+.account-card:nth-child(3){animation-delay:0.26s}
+
+.card-top-line{height:2px}
+.T .card-top-line{background:linear-gradient(90deg,transparent,var(--T) 40%,transparent)}
+.E .card-top-line{background:linear-gradient(90deg,transparent,var(--E) 40%,transparent)}
+.R .card-top-line{background:linear-gradient(90deg,transparent,var(--R) 40%,transparent)}
+
+.card-header{
+  padding:22px 26px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  cursor:pointer;
+  user-select:none;
+}
+
+.card-title-wrap{display:flex;align-items:center;gap:14px}
+
+.card-icon{font-size:1.3rem;line-height:1}
+
+.card-title{font-size:1.4rem;font-weight:300;letter-spacing:0.03em}
+.T .card-title{color:var(--T)}
+.E .card-title{color:var(--E)}
+.R .card-title{color:var(--R)}
+
+.card-subtitle{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.2em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-top:2px;
+}
+
+.card-summary{text-align:right}
+
+.summary-big{
+  font-size:1.8rem;
+  font-weight:300;
+  color:var(--white);
+  line-height:1;
+  font-family:'Cormorant Garamond',serif;
+}
+
+.T .summary-big{color:var(--T)}
+.E .summary-big{color:var(--E)}
+.R .summary-big{color:var(--R)}
+
+.summary-meta{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  color:var(--text-dim);
+  letter-spacing:0.1em;
+  margin-top:2px;
+}
+
+.card-chevron{
+  font-size:10px;
+  color:var(--text-dim);
+  margin-left:16px;
+  transition:transform 0.3s;
+}
+
+.card-body{padding:0 26px 24px}
+
+.section-label-sm{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7.5px;
+  letter-spacing:0.3em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:block;
+}
+.num-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:2px;
+  color:var(--white);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:7px 28px 7px 10px;
+  outline:none;
+  text-align:right;
+  -moz-appearance:textfield;
+  transition:border-color 0.2s;
+}
+
+.num-input::-webkit-outer-spin-button,
+.num-input::-webkit-inner-spin-button{-webkit-appearance:none}
+
+.num-input:focus{border-color:var(--border2)}
+
+.T .num-input:focus{border-color:var(--T)}
+.E .num-input:focus{border-color:var(--E)}
+.R .num-input:focus{border-color:var(--R)}
+
+.num-unit{
+  position:absolute;
+  right:8px;top:50%;
+  transform:translateY(-50%);
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  color:var(--text-dim);
+  pointer-events:none;
+}
+
+/* ─── DYNAMIC ENTRIES (combobox-based) ─── */
+.custom-section{
+  border-top:1px solid var(--border);
+  padding-top:16px;
+  margin-bottom:18px;
+}
+
+.custom-items{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+
+.custom-item{
+  display:grid;
+  grid-template-columns:22px 1fr 88px 26px;
+  gap:8px;
+  align-items:center;
+}
+
+.goal-flag{
+  width:26px;height:18px;
+  border:1px solid var(--border2);
+  border-radius:9px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+  flex-shrink:0;
+  font-family:'JetBrains Mono',monospace;
+  font-size:7px;
+  letter-spacing:0.05em;
+  color:var(--text-faint);
+  background:none;
+  text-transform:uppercase;
+}
+
+.goal-flag::before{
+  content:'—';
+}
+
+.goal-flag:hover{border-color:var(--gold-dim);color:var(--gold-dim)}
+.goal-flag:hover::before{content:'★'}
+
+.goal-flag.active{
+  background:rgba(196,162,74,0.15);
+  border-color:var(--gold);
+  color:var(--gold);
+}
+
+.goal-flag.active::before{
+  content:'★';
+}
+
+.goal-flag-hint{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7.5px;
+  letter-spacing:0.08em;
+  color:var(--text-dim);
+  text-transform:none;
+  margin-bottom:12px;
+  display:block;
+  line-height:1.5;
+}
+
+.combo-wrap{position:relative}
+
+.custom-name-input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:2px;
+  color:var(--text);
+  font-family:'Cormorant Garamond',serif;
+  font-size:0.9rem;
+  font-style:italic;
+  padding:7px 28px 7px 10px;
+  outline:none;
+  width:100%;
+  transition:border-color 0.2s;
+}
+
+.custom-name-input::placeholder{color:var(--text-faint);font-style:italic}
+.custom-name-input:focus{border-color:var(--border2)}
+
+.T .custom-name-input:focus{border-color:var(--T)}
+.E .custom-name-input:focus{border-color:var(--E)}
+.R .custom-name-input:focus{border-color:var(--R)}
+
+.combo-caret{
+  position:absolute;
+  right:9px;top:50%;
+  transform:translateY(-50%);
+  font-size:8px;
+  color:var(--text-faint);
+  pointer-events:none;
+}
+
+.combo-dropdown{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;right:0;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:2px;
+  max-height:170px;
+  overflow-y:auto;
+  z-index:50;
+  display:none;
+  box-shadow:0 10px 28px rgba(0,0,0,0.5);
+}
+
+.combo-dropdown.open{display:block}
+
+.combo-option{
+  padding:8px 12px;
+  font-size:0.85rem;
+  font-style:italic;
+  color:var(--text);
+  cursor:pointer;
+  transition:background 0.15s;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.combo-option:hover{background:rgba(255,255,255,0.04)}
+
+.T .combo-option:hover{color:var(--T)}
+.E .combo-option:hover{color:var(--E)}
+.R .combo-option:hover{color:var(--R)}
+
+.combo-option-delete{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  color:var(--text-faint);
+  width:16px;height:16px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+.combo-option-delete:hover{color:var(--danger);background:rgba(160,80,80,0.15)}
+
+.combo-empty{
+  padding:10px 12px;
+  font-size:0.78rem;
+  color:var(--text-faint);
+  font-style:italic;
+}
+
+.num-input-wrap{position:relative}
+
+.num-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:2px;
+  color:var(--white);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:7px 26px 7px 10px;
+  outline:none;
+  text-align:right;
+  -moz-appearance:textfield;
+  transition:border-color 0.2s;
+}
+
+.num-input::-webkit-outer-spin-button,
+.num-input::-webkit-inner-spin-button{-webkit-appearance:none}
+
+.num-input:focus{border-color:var(--border2)}
+
+.T .num-input:focus{border-color:var(--T)}
+.E .num-input:focus{border-color:var(--E)}
+.R .num-input:focus{border-color:var(--R)}
+
+.num-unit{
+  position:absolute;
+  right:7px;top:50%;
+  transform:translateY(-50%);
+  font-family:'JetBrains Mono',monospace;
+  font-size:7.5px;
+  color:var(--text-dim);
+  pointer-events:none;
+}
+
+.remove-btn{
+  background:none;
+  border:1px solid var(--border);
+  border-radius:2px;
+  color:var(--text-dim);
+  cursor:pointer;
+  font-size:12px;
+  height:30px;
+  width:26px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+  flex-shrink:0;
+}
+
+.remove-btn:hover{border-color:var(--danger);color:var(--danger)}
+
+.add-task-btn{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  background:none;
+  border:1px dashed var(--border);
+  border-radius:2px;
+  color:var(--text-dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  padding:8px 14px;
+  cursor:pointer;
+  width:100%;
+  transition:all 0.2s;
+}
+
+.add-task-btn:hover{border-color:var(--border2);color:var(--text)}
+
+/* ─── ENTRY TAGGING (optional, per-row) ─── */
+.entry-tag-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:6px;
+  padding-left:30px;
+  flex-wrap:wrap;
+}
+
+.tag-toggle-link{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7.5px;
+  letter-spacing:0.1em;
+  color:var(--text-faint);
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:color 0.2s;
+  white-space:nowrap;
+}
+
+.tag-toggle-link:hover{color:var(--text-dim)}
+
+.entry-tag-picker{
+  display:none;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.entry-tag-picker.open{display:flex}
+
+.tag-combo-wrap{position:relative;min-width:140px}
+
+.tag-input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--text-dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.05em;
+  padding:5px 12px;
+  outline:none;
+  width:100%;
+  transition:border-color 0.2s;
+}
+
+.tag-input::placeholder{color:var(--text-faint)}
+.tag-input:focus{border-color:var(--border2)}
+
+.tag-dropdown{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;right:0;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:2px;
+  max-height:140px;
+  overflow-y:auto;
+  z-index:60;
+  display:none;
+  box-shadow:0 10px 24px rgba(0,0,0,0.5);
+}
+
+.tag-dropdown.open{display:block}
+
+.tag-option{
+  padding:6px 12px;
+  font-size:0.78rem;
+  color:var(--text);
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.tag-option:hover{background:rgba(255,255,255,0.04)}
+
+.tag-pill-display{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.05em;
+  padding:3px 10px;
+  border-radius:12px;
+  background:rgba(196,162,74,0.1);
+  color:var(--gold);
+  border:1px solid var(--gold-dim);
+}
+
+.tag-pill-remove{cursor:pointer;color:var(--gold-dim);font-size:9px}
+.tag-pill-remove:hover{color:var(--danger)}
+
+.direction-toggle{
+  display:flex;
+  gap:4px;
+}
+
+.direction-btn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  padding:4px 9px;
+  border-radius:10px;
+  border:1px solid var(--border2);
+  background:none;
+  color:var(--text-faint);
+  cursor:pointer;
+  transition:all 0.15s;
+}
+
+.direction-btn.active.in{background:rgba(122,158,110,0.15);color:var(--E);border-color:var(--E)}
+.direction-btn.active.out{background:rgba(160,112,96,0.15);color:var(--R);border-color:var(--R)}
+
+/* ─── REFLECTION ─── */
+.reflection-section{border-top:1px solid var(--border);padding-top:16px}
+
+.reflection-textarea{
+  width:100%;
+  background:rgba(255,255,255,0.015);
+  border:1px solid var(--border);
+  border-radius:2px;
+  color:var(--text);
+  font-family:'Cormorant Garamond',serif;
+  font-size:0.92rem;
+  font-weight:300;
+  padding:11px 13px;
+  resize:none;
+  outline:none;
+  line-height:1.6;
+  transition:border-color 0.2s;
+  min-height:60px;
+}
+
+.reflection-textarea::placeholder{color:var(--text-faint);font-style:italic}
+.reflection-textarea:focus{border-color:var(--border2)}
+
+/* ─── ALIGNMENT PANEL ─── */
+.align-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:24px 26px;
+  margin-bottom:24px;
+  animation:fadeUp 0.5s 0.32s ease both;
+}
+
+.align-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.3em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-bottom:20px;
+  display:block;
+}
+
+.align-rows{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+
+.align-row{
+  display:grid;
+  grid-template-columns:74px 1fr 50px 50px;
+  align-items:center;
+  gap:12px;
+}
+
+.align-row-label{
+  font-size:0.8rem;
+  color:var(--text-dim);
+  text-align:right;
+}
+
+.bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+
+.bar-fill{height:100%;border-radius:2px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1)}
+.T-fill{background:var(--T)}
+.E-fill{background:var(--E)}
+.R-fill{background:var(--R)}
+
+.bar-goal{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  color:var(--text-dim);
+  text-align:right;
+}
+
+.bar-pct{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  text-align:right;
+}
+
+.score-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-top:1px solid var(--border);
+  padding-top:18px;
+}
+
+.score-label{font-size:0.95rem;font-weight:300;color:var(--text-dim);font-style:italic}
+.score-sub{font-size:0.75rem;color:var(--text-faint);margin-top:3px}
+
+.score-number{
+  font-size:3rem;
+  font-weight:300;
+  color:var(--gold);
+  line-height:1;
+  font-family:'Cormorant Garamond',serif;
+}
+
+.score-pct-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  color:var(--gold-dim);
+  letter-spacing:0.2em;
+  text-align:right;
+  margin-top:3px;
+}
+
+/* ─── TOMORROW ─── */
+.tomorrow-section{animation:fadeUp 0.5s 0.38s ease both;margin-bottom:28px}
+
+/* ─── ACTIONS ─── */
+.form-actions{
+  display:flex;gap:12px;
+  justify-content:flex-end;
+  animation:fadeUp 0.5s 0.42s ease both;
+}
+
+.btn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  padding:11px 22px;
+  border-radius:2px;
+  cursor:pointer;
+  border:none;
+  transition:all 0.2s;
+}
+
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text-dim)}
+.btn-ghost:hover{border-color:var(--text-dim);color:var(--text)}
+
+.btn-primary{background:var(--gold);color:var(--bg);font-weight:500}
+.btn-primary:hover{background:#d4b560;box-shadow:0 0 20px rgba(196,162,74,0.2)}
+
+/* ─── LOG VIEW ─── */
+#view-log{}
+
+.log-controls{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:24px;
+  animation:fadeUp 0.5s ease both;
+}
+
+.log-count{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  color:var(--text-dim);
+  letter-spacing:0.15em;
+}
+
+.log-entries-wrap{display:flex;flex-direction:column;gap:16px}
+
+.log-entry-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  overflow:hidden;
+  animation:fadeUp 0.4s ease both;
+  cursor:pointer;
+  transition:border-color 0.2s;
+}
+
+.log-entry-card:hover{border-color:var(--border2)}
+
+.log-entry-header{
+  padding:16px 22px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:start;
+  gap:16px;
+}
+
+.log-date-wrap{}
+
+.log-date-main{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--text-dim);
+  letter-spacing:0.1em;
+  margin-bottom:4px;
+}
+
+.log-goal-text{
+  font-size:0.95rem;
+  color:var(--text);
+  font-style:italic;
+  font-weight:300;
+}
+
+.log-score-badge{
+  font-size:2rem;
+  font-weight:300;
+  color:var(--gold);
+  font-family:'Cormorant Garamond',serif;
+  line-height:1;
+  text-align:right;
+}
+
+.log-score-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7px;
+  color:var(--gold-dim);
+  letter-spacing:0.2em;
+  text-align:right;
+}
+
+.log-entry-body{
+  border-top:1px solid var(--border);
+  padding:14px 22px;
+  display:none;
+}
+
+.log-entry-card.expanded .log-entry-body{display:block}
+
+.log-pills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:14px;
+}
+
+.log-pill{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.08em;
+  padding:4px 10px;
+  border-radius:20px;
+}
+
+.pill-T{background:var(--T-bg);color:var(--T)}
+.pill-E{background:var(--E-bg);color:var(--E)}
+.pill-R{background:var(--R-bg);color:var(--R)}
+
+.log-tasks-section{margin-bottom:12px}
+
+.log-tasks-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7px;
+  letter-spacing:0.25em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-bottom:6px;
+  display:block;
+}
+
+.log-task-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+.log-task-item{
+  font-size:0.8rem;
+  color:var(--text-dim);
+  font-style:italic;
+  background:var(--surface2);
+  padding:3px 9px;
+  border-radius:2px;
+  border:1px solid var(--border);
+}
+
+.log-notes-section{display:flex;flex-direction:column;gap:8px}
+
+.log-note-item{
+  font-size:0.85rem;
+  color:var(--text-dim);
+  font-style:italic;
+  line-height:1.5;
+}
+
+.log-note-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7px;
+  letter-spacing:0.2em;
+  color:var(--text-faint);
+  text-transform:uppercase;
+  margin-right:6px;
+}
+
+.edit-entry-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:100%;
+  margin-top:16px;
+  background:none;
+  border:1px solid var(--border2);
+  border-radius:2px;
+  color:var(--gold-dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  padding:9px 14px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+
+.edit-entry-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-glow)}
+
+/* ─── EDIT MODE BANNER ─── */
+.edit-banner{
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  background:rgba(196,162,74,0.08);
+  border:1px solid var(--gold-dim);
+  border-radius:3px;
+  padding:14px 20px;
+  margin-bottom:24px;
+  animation:fadeUp 0.4s ease both;
+}
+
+.edit-banner-text{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.1em;
+  color:var(--gold);
+  text-transform:uppercase;
+}
+
+.edit-banner-cancel{
+  background:none;
+  border:1px solid var(--gold-dim);
+  border-radius:2px;
+  color:var(--gold-dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  padding:7px 14px;
+  cursor:pointer;
+  transition:all 0.2s;
+  white-space:nowrap;
+}
+
+.edit-banner-cancel:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ─── SYNC STATUS ─── */
+.sync-status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:14px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.1em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+}
+
+.sync-dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--text-faint);
+  flex-shrink:0;
+  transition:background 0.3s;
+}
+
+.sync-dot.connected{background:var(--E);box-shadow:0 0 6px var(--E)}
+.sync-dot.syncing{background:var(--gold);box-shadow:0 0 6px var(--gold);animation:pulse 1s infinite}
+.sync-dot.error{background:var(--danger);box-shadow:0 0 6px var(--danger)}
+
+@keyframes pulse{
+  0%,100%{opacity:1}
+  50%{opacity:0.3}
+}
+
+/* ─── SETTINGS VIEW ─── */
+.settings-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:24px 26px;
+  margin-bottom:20px;
+  animation:fadeUp 0.5s ease both;
+}
+
+.settings-help{
+  font-size:0.88rem;
+  color:var(--text-dim);
+  font-style:italic;
+  line-height:1.6;
+  margin-bottom:16px;
+  max-width:560px;
+}
+
+.settings-help code{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.82rem;
+  color:var(--gold-dim);
+  background:var(--surface2);
+  padding:2px 6px;
+  border-radius:2px;
+  font-style:normal;
+}
+
+.settings-input-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.settings-input{
+  flex:1;
+  min-width:240px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:2px;
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  padding:11px 14px;
+  outline:none;
+  transition:border-color 0.2s;
+}
+
+.settings-input::placeholder{color:var(--text-faint)}
+.settings-input:focus{border-color:var(--gold-dim)}
+
+.settings-status{
+  margin-top:12px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.1em;
+  color:var(--text-dim);
+  min-height:14px;
+}
+
+.settings-status.success{color:var(--E)}
+.settings-status.error{color:var(--danger)}
+
+.settings-actions-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+/* ─── STATS VIEW ─── */
+
+.top-entries-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+
+.top-entries-col{}
+
+.top-entries-col-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:block;
+}
+
+.top-entry-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:7px 0;
+  border-bottom:1px solid var(--border);
+  font-size:0.85rem;
+}
+
+.top-entry-name{
+  color:var(--text);
+  font-style:italic;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  margin-right:8px;
+}
+
+.top-entry-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--text-dim);
+  flex-shrink:0;
+}
+
+/* ─── GOALS VIEW ─── */
+.goals-tier-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:24px 26px;
+  margin-bottom:24px;
+  animation:fadeUp 0.5s ease both;
+}
+
+.goals-tier-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  color:var(--gold);
+  text-transform:uppercase;
+  margin-bottom:8px;
+  display:block;
+}
+
+.goal-bank-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+  align-items:center;
+}
+
+.goal-saved-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.goal-card{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.goal-card-info{flex:1;min-width:200px}
+
+.goal-card-name{
+  font-size:0.95rem;
+  color:var(--white);
+  font-style:italic;
+  margin-bottom:4px;
+}
+
+.goal-card-meta{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.08em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+}
+
+.goal-card-progress{
+  flex:1;
+  min-width:160px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.goal-card-progress .bar-track{flex:1}
+
+.goal-card-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.goal-card-value-input{
+  width:90px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:2px;
+  color:var(--white);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  padding:6px 8px;
+  outline:none;
+  text-align:right;
+}
+
+.goal-card-pct{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem;
+  color:var(--gold);
+  font-weight:300;
+  white-space:nowrap;
+}
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-bottom:32px;
+  animation:fadeUp 0.5s ease both;
+}
+
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:20px;
+}
+
+.stat-card-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.2em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:block;
+}
+
+.stat-big{
+  font-size:2.2rem;
+  font-weight:300;
+  color:var(--white);
+  line-height:1;
+  font-family:'Cormorant Garamond',serif;
+}
+
+.stat-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  color:var(--text-dim);
+  margin-top:4px;
+}
+
+.trend-chart{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:24px 26px;
+  animation:fadeUp 0.5s 0.1s ease both;
+}
+
+.chart-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.3em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-bottom:20px;
+  display:block;
+}
+
+.chart-area{position:relative;height:120px;margin-bottom:8px}
+
+.chart-bars-wrap{
+  display:flex;
+  align-items:flex-end;
+  gap:4px;
+  height:100%;
+}
+
+.chart-bar-col{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  height:100%;
+  justify-content:flex-end;
+}
+
+.chart-bar{
+  width:100%;
+  border-radius:2px 2px 0 0;
+  min-height:2px;
+  transition:height 0.5s ease;
+}
+
+.chart-date-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7px;
+  color:var(--text-faint);
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+
+.empty-state{
+  text-align:center;
+  padding:48px 20px;
+  color:var(--text-faint);
+  font-style:italic;
+  font-size:0.95rem;
+  border:1px dashed var(--border);
+  border-radius:3px;
+}
+
+/* ─── TOAST ─── */
+.toast{
+  position:fixed;
+  bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--surface);
+  border:1px solid var(--gold-dim);
+  color:var(--gold);
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  padding:11px 22px;
+  border-radius:2px;
+  opacity:0;
+  transition:all 0.3s ease;
+  z-index:999;
+  pointer-events:none;
+}
+
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ─── ANIMS ─── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ─── MOBILE ─── */
+@media(max-width:700px){
+  .sidebar{display:none}
+  .main{padding:24px 20px 60px}
+  .stats-grid{grid-template-columns:1fr}
+  .align-row{grid-template-columns:60px 1fr 40px 40px}
+  .mobile-nav{
+    display:flex;
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    z-index:100;
+    padding:8px 0;
+  }
+  .mobile-nav-item{
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;gap:4px;
+    cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+    font-size:7px;letter-spacing:0.1em;
+    color:var(--text-dim);padding:6px 0;
+    transition:color 0.2s;
+  }
+  .mobile-nav-item.active{color:var(--gold)}
+  .mobile-nav-icon{font-size:14px}
+}
+
+@media(min-width:701px){
+  .mobile-nav{display:none}
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-label">Daily Ritual</span>
+      <div class="logo-name">The Three <em>Accounts</em></div>
+    </div>
+
+    <div class="nav-item active" onclick="showView('log-form')" id="nav-log-form">
+      <span class="nav-icon">✦</span> Today
+    </div>
+    <div class="nav-item" onclick="showView('log')" id="nav-log">
+      <span class="nav-icon">◈</span> Record
+    </div>
+    <div class="nav-item" onclick="showView('stats')" id="nav-stats">
+      <span class="nav-icon">◎</span> Patterns
+    </div>
+    <div class="nav-item" onclick="showView('goals')" id="nav-goals">
+      <span class="nav-icon">✪</span> Goals
+    </div>
+    <div class="nav-item" onclick="showView('settings')" id="nav-settings">
+      <span class="nav-icon">⚙</span> Settings
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sync-status" id="sync-status">
+        <span class="sync-dot" id="sync-dot"></span>
+        <span id="sync-status-text">Not connected</span>
+      </div>
+      <div class="sidebar-date" id="sidebar-date">—</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══ TODAY FORM ═══ -->
+    <div class="view active" id="view-log-form">
+
+      <div class="page-header">
+        <span class="page-eyebrow">Daily Check-in</span>
+        <h1 class="page-title">Where did you<br><em>spend yourself</em> today?</h1>
+      </div>
+
+      <!-- EDIT MODE BANNER -->
+      <div class="edit-banner" id="edit-banner">
+        <span class="edit-banner-text">✎ Editing entry</span>
+        <button class="edit-banner-cancel" onclick="cancelEdit()">Cancel edit</button>
+      </div>
+
+      <!-- NORTH STAR -->
+      <div class="goal-anchor">
+        <span class="field-label">▸ North Star — Today's Primary Goal</span>
+        <textarea class="goal-input" id="mainGoal" rows="2"
+          placeholder="The one thing everything today must serve…"></textarea>
+      </div>
+
+      <!-- ── TIME CARD ── -->
+      <div class="account-card T" id="card-T">
+        <div class="card-top-line"></div>
+        <div class="card-header" onclick="toggleCard('T')">
+          <div class="card-title-wrap">
+            <span class="card-icon">◷</span>
+            <div>
+              <div class="card-title">Time</div>
+              <div class="card-subtitle">Hours invested today</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="card-summary">
+              <div class="summary-big" id="T-total-display">0h</div>
+              <div class="summary-meta">total · <span id="T-goal-display">0h</span> to goal</div>
+            </div>
+            <span class="card-chevron" id="chevron-T">▾</span>
+          </div>
+        </div>
+
+        <div class="card-body" id="body-T">
+          <!-- Dynamic entries -->
+          <div class="custom-section" style="border-top:none;padding-top:0">
+            <span class="section-label-sm">▸ What did you work on?</span>
+            <span class="goal-flag-hint">Log everything. Tap ★ only on entries that directly serve your North Star goal above — leave everything else as —</span>
+            <div class="custom-items" id="custom-T"></div>
+            <button class="add-task-btn" onclick="addCustomTask('T')">+ Add entry</button>
+          </div>
+
+          <!-- Reflection -->
+          <div class="reflection-section">
+            <span class="section-label-sm">▸ Reflection</span>
+            <textarea class="reflection-textarea" id="note-T" rows="2"
+              placeholder="Where did the hours actually go? Any leaks you noticed?"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ENERGY CARD ── -->
+      <div class="account-card E" id="card-E">
+        <div class="card-top-line"></div>
+        <div class="card-header" onclick="toggleCard('E')">
+          <div class="card-title-wrap">
+            <span class="card-icon">◈</span>
+            <div>
+              <div class="card-title">Energy</div>
+              <div class="card-subtitle">Capacity spent (0–10 scale)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="card-summary">
+              <div class="summary-big" id="E-total-display">0</div>
+              <div class="summary-meta">total · <span id="E-goal-display">0</span> to goal</div>
+            </div>
+            <span class="card-chevron" id="chevron-E">▾</span>
+          </div>
+        </div>
+
+        <div class="card-body" id="body-E">
+          <div class="custom-section" style="border-top:none;padding-top:0">
+            <span class="section-label-sm">▸ What did you work on?</span>
+            <span class="goal-flag-hint">Log everything. Tap ★ only on entries that directly serve your North Star goal above — leave everything else as —</span>
+            <div class="custom-items" id="custom-E"></div>
+            <button class="add-task-btn" onclick="addCustomTask('E')">+ Add entry</button>
+          </div>
+
+          <div class="reflection-section">
+            <span class="section-label-sm">▸ Reflection</span>
+            <textarea class="reflection-textarea" id="note-E" rows="2"
+              placeholder="What drained you most? What gave you energy?"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RESOURCES CARD ── -->
+      <div class="account-card R" id="card-R">
+        <div class="card-top-line"></div>
+        <div class="card-header" onclick="toggleCard('R')">
+          <div class="card-title-wrap">
+            <span class="card-icon">◎</span>
+            <div>
+              <div class="card-title">Resources</div>
+              <div class="card-subtitle">Money · Attention · Capital (0–10 scale)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="card-summary">
+              <div class="summary-big" id="R-total-display">0</div>
+              <div class="summary-meta">total · <span id="R-goal-display">0</span> to goal</div>
+            </div>
+            <span class="card-chevron" id="chevron-R">▾</span>
+          </div>
+        </div>
+
+        <div class="card-body" id="body-R">
+          <div class="custom-section" style="border-top:none;padding-top:0">
+            <span class="section-label-sm">▸ What did you work on?</span>
+            <span class="goal-flag-hint">Log everything. Tap ★ only on entries that directly serve your North Star goal above — leave everything else as —</span>
+            <div class="custom-items" id="custom-R"></div>
+            <button class="add-task-btn" onclick="addCustomTask('R')">+ Add entry</button>
+          </div>
+
+          <div class="reflection-section">
+            <span class="section-label-sm">▸ Reflection</span>
+            <textarea class="reflection-textarea" id="note-R" rows="2"
+              placeholder="Where did money and attention actually flow today?"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALIGNMENT PANEL -->
+      <div class="align-panel">
+        <span class="align-title">▸ Goal Alignment — How aligned was today?</span>
+        <div class="align-rows">
+          <div class="align-row">
+            <span class="align-row-label" style="color:var(--T)">Time</span>
+            <div class="bar-track"><div class="bar-fill T-fill" id="bar-T" style="width:0%"></div></div>
+            <span class="bar-goal" id="bgval-T">0 / 0</span>
+            <span class="bar-pct" style="color:var(--T)" id="bpct-T">0%</span>
+          </div>
+          <div class="align-row">
+            <span class="align-row-label" style="color:var(--E)">Energy</span>
+            <div class="bar-track"><div class="bar-fill E-fill" id="bar-E" style="width:0%"></div></div>
+            <span class="bar-goal" id="bgval-E">0 / 0</span>
+            <span class="bar-pct" style="color:var(--E)" id="bpct-E">0%</span>
+          </div>
+          <div class="align-row">
+            <span class="align-row-label" style="color:var(--R)">Resources</span>
+            <div class="bar-track"><div class="bar-fill R-fill" id="bar-R" style="width:0%"></div></div>
+            <span class="bar-goal" id="bgval-R">0 / 0</span>
+            <span class="bar-pct" style="color:var(--R)" id="bpct-R">0%</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <div>
+            <div class="score-label">Goal Alignment Score</div>
+            <div class="score-sub">Average % of each account toward your North Star</div>
+          </div>
+          <div>
+            <div class="score-number" id="score-main">—</div>
+            <div class="score-pct-label">% aligned</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOMORROW -->
+      <div class="tomorrow-section">
+        <span class="field-label">▸ Tomorrow's Intention</span>
+        <textarea class="reflection-textarea" id="tomorrow" rows="2"
+          placeholder="Tomorrow I will protect my accounts by…" style="margin-top:8px"></textarea>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+        <button class="btn btn-primary" onclick="saveEntry()"><span id="save-btn-label">Seal the Day ↗</span></button>
+      </div>
+
+    </div><!-- /view-log-form -->
+
+    <!-- ═══ RECORD VIEW ═══ -->
+    <div class="view" id="view-log">
+      <div class="page-header">
+        <span class="page-eyebrow">Your Record</span>
+        <h1 class="page-title">The <em>Ledger</em></h1>
+      </div>
+
+      <div class="log-controls">
+        <span class="log-count" id="log-count">0 entries</span>
+      </div>
+
+      <div class="log-entries-wrap" id="logEntries">
+        <div class="empty-state">No entries yet. Seal your first day to begin the record.</div>
+      </div>
+    </div>
+
+    <!-- ═══ STATS VIEW ═══ -->
+    <div class="view" id="view-stats">
+      <div class="page-header" style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
+        <div>
+          <span class="page-eyebrow">Patterns</span>
+          <h1 class="page-title">Where you actually <em>spend yourself</em></h1>
+        </div>
+        <button class="btn btn-primary" onclick="exportToExcel()" style="margin-bottom:4px">⇩ Export to Excel</button>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <span class="stat-card-label">Days Logged</span>
+          <div class="stat-big" id="stat-entries">0</div>
+          <div class="stat-sub">total entries</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-label">Avg Time / Day</span>
+          <div class="stat-big" id="stat-avg-time">—</div>
+          <div class="stat-sub">hours logged</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-label">Avg Energy / Day</span>
+          <div class="stat-big" id="stat-avg-energy">—</div>
+          <div class="stat-sub">points logged</div>
+        </div>
+      </div>
+
+      <div class="trend-chart" style="margin-bottom:24px">
+        <span class="chart-title">▸ Most Recurring — by Account</span>
+        <div id="topEntriesGrid" class="top-entries-grid">
+          <div class="empty-state" style="width:100%;border:none">Start logging to see your most frequent activities.</div>
+        </div>
+      </div>
+
+      <div class="trend-chart">
+        <span class="chart-title">▸ Daily Totals — Last 14 Days</span>
+        <div class="chart-area">
+          <div class="chart-bars-wrap" id="trendBars">
+            <div class="empty-state" style="width:100%;border:none">Start logging to see your pattern.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GOALS VIEW ═══ -->
+    <div class="view" id="view-goals">
+      <div class="page-header">
+        <span class="page-eyebrow">Strategic Layer</span>
+        <h1 class="page-title">What's actually moving <em>forward</em></h1>
+      </div>
+
+      <!-- DAILY GOAL ALIGNMENT (existing scoring, moved here) -->
+      <div class="goals-tier-panel">
+        <span class="goals-tier-label">▸ Daily — Today's North Star</span>
+        <p class="settings-help">This reflects the goal you set on the Today page and how much of each account actually went toward it.</p>
+        <div class="stats-grid" style="margin-bottom:0">
+          <div class="stat-card">
+            <span class="stat-card-label">Avg Alignment</span>
+            <div class="stat-big" id="stat-avg-score">—</div>
+            <div class="stat-sub">% toward goal / day</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card-label">Best Day</span>
+            <div class="stat-big" id="stat-best">—</div>
+            <div class="stat-sub">highest alignment</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card-label">Today</span>
+            <div class="stat-big" id="stat-today-score">—</div>
+            <div class="stat-sub">current alignment</div>
+          </div>
+        </div>
+        <div class="chart-area" style="margin-top:20px">
+          <div class="chart-bars-wrap" id="goalTrendBars">
+            <div class="empty-state" style="width:100%;border:none">Start logging to see your alignment trend.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEKLY / MONTHLY GOALS -->
+      <div class="goals-tier-panel">
+        <span class="goals-tier-label">▸ Weekly / Monthly — Category Goals</span>
+        <p class="settings-help">Track a tag (e.g. "discretionary," "client-work," "doom-scroll") trending up or down across a window of time. Tag entries optionally when you log them — tap "+ tag" under any entry.</p>
+
+        <div class="goal-bank-row">
+          <div class="combo-wrap" style="flex:1;min-width:200px">
+            <input type="text" class="settings-input" id="newWeeklyGoalName" placeholder="Goal name, e.g. Reduce Discretionary Spending">
+          </div>
+          <div class="combo-wrap" style="min-width:160px">
+            <input type="text" class="settings-input" id="newWeeklyGoalTag" placeholder="Tag to track…" autocomplete="off"
+              onfocus="openTagDropdownStandalone(this)" oninput="openTagDropdownStandalone(this)">
+            <div class="tag-dropdown" id="weeklyTagDropdown"></div>
+          </div>
+          <div class="direction-toggle" id="weeklyDirectionToggle">
+            <button type="button" class="direction-btn out active out" data-dir="down" onclick="selectWeeklyDirection(this)">↓ reduce</button>
+            <button type="button" class="direction-btn in" data-dir="up" onclick="selectWeeklyDirection(this)">↑ grow</button>
+          </div>
+          <button class="btn btn-primary" onclick="saveWeeklyGoal()">+ Save Goal</button>
+        </div>
+
+        <div class="goal-saved-list" id="weeklyGoalsList">
+          <div class="empty-state" style="border:none">No weekly/monthly goals saved yet.</div>
+        </div>
+      </div>
+
+      <!-- YEARLY GOALS -->
+      <div class="goals-tier-panel">
+        <span class="goals-tier-label">▸ Yearly / Long-Term — Targets</span>
+        <p class="settings-help">A target number you check in on manually — e.g. savings, revenue, a weight goal. Update your current value whenever you check in; no need to log it daily.</p>
+
+        <div class="goal-bank-row">
+          <input type="text" class="settings-input" id="newYearlyGoalName" placeholder="Goal name, e.g. Save 50,000 AED" style="flex:2;min-width:200px">
+          <input type="number" class="settings-input" id="newYearlyGoalTarget" placeholder="Target amount" style="flex:1;min-width:120px">
+          <input type="text" class="settings-input" id="newYearlyGoalUnit" placeholder="Unit (AED, kg, etc.)" style="flex:1;min-width:100px">
+          <button class="btn btn-primary" onclick="saveYearlyGoal()">+ Save Goal</button>
+        </div>
+
+        <div class="goal-saved-list" id="yearlyGoalsList">
+          <div class="empty-state" style="border:none">No yearly goals saved yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS VIEW ═══ -->
+    <div class="view" id="view-settings">
+      <div class="page-header">
+        <span class="page-eyebrow">Settings</span>
+        <h1 class="page-title">Connect your <em>Sheet</em></h1>
+      </div>
+
+      <div class="settings-panel">
+        <span class="field-label">▸ Google Apps Script Web App URL</span>
+        <p class="settings-help">Paste the URL you got after deploying the Apps Script (ends in <code>/exec</code>). This connects the app to your private Google Sheet — your data lives there, not on any server of mine.</p>
+        <div class="settings-input-row">
+          <input type="text" id="scriptUrlInput" class="settings-input" placeholder="https://script.google.com/macros/s/…/exec">
+          <button class="btn btn-primary" onclick="saveScriptUrl()">Connect</button>
+        </div>
+        <div class="settings-status" id="settings-status"></div>
+      </div>
+
+      <div class="settings-panel">
+        <span class="field-label">▸ Sync</span>
+        <p class="settings-help">Pull the latest data from your Sheet, or push everything currently on this device up to it. Useful right after connecting a new phone or browser.</p>
+        <div class="settings-actions-row">
+          <button class="btn btn-ghost" onclick="pullFromSheet(true)">⇣ Pull from Sheet</button>
+          <button class="btn btn-ghost" onclick="pushAllToSheet()">⇡ Push everything to Sheet</button>
+        </div>
+      </div>
+
+      <div class="settings-panel">
+        <span class="field-label">▸ About this connection</span>
+        <p class="settings-help">When connected, sealing a day or editing your saved entries writes directly to your Google Sheet in the background. If you're offline, changes save locally first and sync next time you have a connection. Nothing is sent anywhere except your own Sheet.</p>
+      </div>
+    </div>
+
+  </main><!-- /main -->
+</div><!-- /app -->
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <div class="mobile-nav-item active" onclick="showView('log-form')" id="mnav-log-form">
+    <span class="mobile-nav-icon">✦</span>Today
+  </div>
+  <div class="mobile-nav-item" onclick="showView('log')" id="mnav-log">
+    <span class="mobile-nav-icon">◈</span>Record
+  </div>
+  <div class="mobile-nav-item" onclick="showView('stats')" id="mnav-stats">
+    <span class="mobile-nav-icon">◎</span>Patterns
+  </div>
+  <div class="mobile-nav-item" onclick="showView('goals')" id="mnav-goals">
+    <span class="mobile-nav-icon">✪</span>Goals
+  </div>
+  <div class="mobile-nav-item" onclick="showView('settings')" id="mnav-settings">
+    <span class="mobile-nav-icon">⚙</span>Settings
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATE ───
+const now = new Date();
+const opts = {weekday:'long',year:'numeric',month:'long',day:'numeric'};
+const dateStr = now.toLocaleDateString('en-GB',opts).toUpperCase();
+document.getElementById('sidebar-date').innerHTML = dateStr.replace(', ',' <br>');
+
+// ─── VIEW SWITCHING ───
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.mobile-nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const navEl = document.getElementById('nav-'+name);
+  const mNavEl = document.getElementById('mnav-'+name);
+  if(navEl) navEl.classList.add('active');
+  if(mNavEl) mNavEl.classList.add('active');
+  if(name==='log') renderLog();
+  if(name==='stats') renderStats();
+  if(name==='goals') renderGoalsView();
+  if(name==='settings'){
+    const input = document.getElementById('scriptUrlInput');
+    if(input && scriptUrl) input.value = scriptUrl;
+  }
+}
+
+// ─── CARD COLLAPSE ───
+const collapsed = {T:false, E:false, R:false};
+function toggleCard(acc){
+  collapsed[acc] = !collapsed[acc];
+  const body = document.getElementById('body-'+acc);
+  const chev = document.getElementById('chevron-'+acc);
+  body.style.display = collapsed[acc] ? 'none' : 'block';
+  chev.textContent = collapsed[acc] ? '▸' : '▾';
+}
+
+// ─── HELPERS ───
+function getVal(el){ return parseFloat(el && el.value)||0; }
+let rowCounter = 0;
+
+// ════════════════════════════════════════════════
+// ─── GOOGLE SHEETS SYNC ENGINE ───
+// ════════════════════════════════════════════════
+let scriptUrl = localStorage.getItem('scriptUrl') || '';
+let syncQueue = [];
+let isSyncing = false;
+
+function getScriptUrl(){ return scriptUrl; }
+
+function setSyncStatus(state, text){
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-status-text');
+  if(!dot || !label) return;
+  dot.classList.remove('connected','syncing','error');
+  if(state) dot.classList.add(state);
+  label.textContent = text;
+}
+
+function refreshSyncStatusFromUrl(){
+  if(scriptUrl){
+    setSyncStatus('connected', 'Connected');
+  } else {
+    setSyncStatus(null, 'Not connected — local only');
+  }
+}
+
+// Fire-and-forget call to the Apps Script backend. Falls back silently
+// to local-only mode if no URL is set or the network call fails —
+// the app always keeps working off localStorage regardless.
+async function callSheet(action, payload){
+  if(!scriptUrl) return {ok:false, offline:true};
+  setSyncStatus('syncing', 'Syncing…');
+  try{
+    const res = await fetch(scriptUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action, payload})
+    });
+    const json = await res.json();
+    setSyncStatus('connected', 'Connected');
+    return json;
+  }catch(err){
+    setSyncStatus('error', 'Sync failed — saved locally');
+    return {ok:false, error:String(err)};
+  }
+}
+
+async function fetchSheetData(){
+  if(!scriptUrl) return null;
+  setSyncStatus('syncing', 'Syncing…');
+  try{
+    const res = await fetch(scriptUrl + '?action=getAll');
+    const json = await res.json();
+    setSyncStatus('connected', 'Connected');
+    return json;
+  }catch(err){
+    setSyncStatus('error', 'Sync failed — using local data');
+    return null;
+  }
+}
+
+function saveScriptUrl(){
+  const input = document.getElementById('scriptUrlInput');
+  const url = input.value.trim();
+  const statusEl = document.getElementById('settings-status');
+
+  if(!url){ statusEl.textContent='Enter a URL first.'; statusEl.className='settings-status error'; return; }
+  if(!url.includes('script.google.com')){
+    statusEl.textContent='That doesn\'t look like an Apps Script URL — double check it ends in /exec.';
+    statusEl.className='settings-status error';
+    return;
+  }
+
+  scriptUrl = url;
+  localStorage.setItem('scriptUrl', url);
+  statusEl.textContent='Connecting…';
+  statusEl.className='settings-status';
+
+  refreshSyncStatusFromUrl();
+  pullFromSheet(false).then(success=>{
+    if(success){
+      statusEl.textContent='Connected. Your Sheet and this device are now synced.';
+      statusEl.className='settings-status success';
+      showToast('Connected to Google Sheet.');
+    } else {
+      statusEl.textContent='Saved the URL, but could not reach the Sheet yet. Check the URL and that it\'s deployed with "Anyone" access.';
+      statusEl.className='settings-status error';
+    }
+  });
+}
+
+// Pull everything from the Sheet and overwrite local cache.
+// showToastMsg=false is used on silent background refreshes.
+async function pullFromSheet(showToastMsg){
+  const data = await fetchSheetData();
+  if(!data || !data.ok) return false;
+
+  localStorage.setItem('three-accounts-v3', JSON.stringify(data.logs||[]));
+  localStorage.setItem('bank-T', JSON.stringify(data.bankT||[]));
+  localStorage.setItem('bank-E', JSON.stringify(data.bankE||[]));
+  localStorage.setItem('bank-R', JSON.stringify(data.bankR||[]));
+  localStorage.setItem('bank-tags', JSON.stringify(data.bankTags||[]));
+  localStorage.setItem('goals-weekly', JSON.stringify(data.goalsWeekly||[]));
+  localStorage.setItem('goals-yearly', JSON.stringify(data.goalsYearly||[]));
+
+  if(showToastMsg) showToast('Pulled latest data from Sheet.');
+  // Refresh whichever view is currently showing
+  if(document.getElementById('view-log').classList.contains('active')) renderLog();
+  if(document.getElementById('view-stats').classList.contains('active')) renderStats();
+  if(document.getElementById('view-goals').classList.contains('active')) renderGoalsView();
+  return true;
+}
+
+// Push everything currently in localStorage up to the Sheet.
+// Used for first-time setup or recovering after being offline.
+async function pushAllToSheet(){
+  if(!scriptUrl){ showToast('Connect a Sheet first in Settings.'); return; }
+  showToast('Pushing all local data to Sheet…');
+
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+  for(const entry of logs){
+    await callSheet('saveEntry', entry);
+  }
+  for(const acc of ['T','E','R']){
+    const labels = getBank(acc);
+    for(const label of labels){
+      await callSheet('addBankLabel', {acc, label});
+    }
+  }
+  for(const label of getTagBankGlobal()){
+    await callSheet('addBankLabel', {acc:'TAGS', label});
+  }
+  for(const g of getWeeklyGoals()){
+    await callSheet('saveWeeklyGoal', g);
+  }
+  for(const g of getYearlyGoals()){
+    await callSheet('saveYearlyGoal', g);
+  }
+  showToast('Push complete. Everything is now on your Sheet.');
+}
+
+// ─── SAVED LABEL BANK (per account) ───
+function getBank(acc){
+  return JSON.parse(localStorage.getItem('bank-'+acc)||'[]');
+}
+function saveBank(acc, labels){
+  localStorage.setItem('bank-'+acc, JSON.stringify(labels));
+}
+function addToBank(acc, label){
+  if(!label) return;
+  let labels = getBank(acc);
+  if(!labels.some(l=>l.toLowerCase()===label.toLowerCase())){
+    labels.push(label);
+    saveBank(acc, labels);
+    callSheet('addBankLabel', {acc, label});
+  }
+}
+function removeFromBank(acc, label, evt){
+  evt.stopPropagation();
+  let labels = getBank(acc).filter(l=>l!==label);
+  saveBank(acc, labels);
+  document.querySelectorAll(`.custom-item-wrap[data-account="${acc}"] .combo-dropdown`).forEach(dd=>renderDropdown(acc, dd));
+  callSheet('removeBankLabel', {acc, label});
+}
+
+// ─── TOTALS & ALIGNMENT ───
+function updateTotals(){
+  ['T','E','R'].forEach(acc=>{
+    const rows = document.querySelectorAll(`#custom-${acc} .custom-item-wrap`);
+    let total = 0, goalTotal = 0;
+    rows.forEach(row=>{
+      const val = getVal(row.querySelector('.num-input'));
+      total += val;
+      if(row.querySelector('.goal-flag').classList.contains('active')) goalTotal += val;
+    });
+
+    const unit = acc==='T'?'h':'';
+    document.getElementById(acc+'-total-display').textContent = total+unit;
+    document.getElementById(acc+'-goal-display').textContent = goalTotal+unit;
+
+    const pct = total>0 ? Math.min((goalTotal/total)*100,100) : 0;
+    document.getElementById('bar-'+acc).style.width = pct+'%';
+    document.getElementById('bgval-'+acc).textContent = goalTotal+' / '+total;
+    document.getElementById('bpct-'+acc).textContent = Math.round(pct)+'%';
+  });
+
+  const scores = ['T','E','R'].map(acc=>{
+    const rows = document.querySelectorAll(`#custom-${acc} .custom-item-wrap`);
+    let total=0, goalTotal=0;
+    rows.forEach(row=>{
+      const val = getVal(row.querySelector('.num-input'));
+      total += val;
+      if(row.querySelector('.goal-flag').classList.contains('active')) goalTotal += val;
+    });
+    return {total, goal:goalTotal};
+  });
+
+  const validScores = scores.filter(s=>s.total>0);
+  const avg = validScores.length>0
+    ? Math.round(validScores.reduce((a,s)=>a+(s.goal/s.total*100),0)/validScores.length)
+    : null;
+
+  const el = document.getElementById('score-main');
+  if(avg!==null){
+    el.textContent = avg+'%';
+    el.style.color = avg>=60?'var(--E)':avg>=35?'var(--gold)':'var(--R)';
+  } else {
+    el.textContent = '—';
+    el.style.color = 'var(--gold)';
+  }
+}
+
+// ─── GOAL FLAG TOGGLE ───
+function toggleGoalFlag(btn){
+  btn.classList.toggle('active');
+  updateTotals();
+}
+
+// ─── COMBOBOX DROPDOWN ───
+function renderDropdown(acc, ddEl){
+  const labels = getBank(acc);
+  if(!labels.length){
+    ddEl.innerHTML = '<div class="combo-empty">No saved entries yet — type a new one below.</div>';
+    return;
+  }
+  ddEl.innerHTML = labels.map(label=>`
+    <div class="combo-option" onmousedown="event.preventDefault();selectComboOption(this,'${escapeJs(label)}')">
+      <span>${escapeHtml(label)}</span>
+      <span class="combo-option-delete" onmousedown="event.preventDefault();event.stopPropagation();removeFromBank('${acc}','${escapeJs(label)}',event)">✕</span>
+    </div>
+  `).join('');
+}
+
+function escapeJs(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function selectComboOption(optEl, label){
+  const wrap = optEl.closest('.combo-wrap');
+  const input = wrap.querySelector('.custom-name-input');
+  input.value = label;
+  wrap.querySelector('.combo-dropdown').classList.remove('open');
+  input.focus();
+}
+
+function openDropdown(acc, inputEl){
+  const dd = inputEl.closest('.combo-wrap').querySelector('.combo-dropdown');
+  renderDropdown(acc, dd);
+  dd.classList.add('open');
+}
+
+function closeDropdownsDelayed(acc, inputEl){
+  setTimeout(()=>{
+    document.querySelectorAll('.combo-dropdown.open').forEach(dd=>dd.classList.remove('open'));
+  },120);
+  // Bank the label immediately, the moment focus leaves the field — independent of saving the day
+  const label = inputEl.value.trim();
+  if(label) addToBank(acc, label);
+}
+
+// ─── ADD / REMOVE ENTRY ROW ───
+function addCustomTask(acc){
+  const wrap = document.getElementById('custom-'+acc);
+  const unit = acc==='T'?'hrs':'/10';
+  const maxVal = acc==='T'?24:10;
+  const rid = 'row'+(++rowCounter);
+  const div = document.createElement('div');
+  div.className = 'custom-item-wrap';
+  div.dataset.account = acc;
+  div.dataset.tag = '';
+  div.dataset.direction = '';
+  div.innerHTML = `
+    <div class="custom-item">
+      <button class="goal-flag" title="Tap to mark this as toward your Main Goal — leave as — if it doesn't directly serve it" onclick="toggleGoalFlag(this)"></button>
+      <div class="combo-wrap">
+        <input type="text" class="custom-name-input" placeholder="Type or pick an entry…"
+          autocomplete="off"
+          onfocus="openDropdown('${acc}', this)"
+          oninput="openDropdown('${acc}', this)"
+          onblur="closeDropdownsDelayed('${acc}', this)">
+        <span class="combo-caret">▾</span>
+        <div class="combo-dropdown"></div>
+      </div>
+      <div class="num-input-wrap">
+        <input type="number" class="num-input" min="0" max="${maxVal}" step="0.5"
+          placeholder="0" oninput="updateTotals()">
+        <span class="num-unit">${unit}</span>
+      </div>
+      <button class="remove-btn" onclick="this.closest('.custom-item-wrap').remove();updateTotals()">✕</button>
+    </div>
+    <div class="entry-tag-row">
+      <span class="tag-toggle-link" onclick="toggleTagPicker(this)">+ tag for a weekly/monthly/yearly goal</span>
+      <div class="entry-tag-picker"></div>
+    </div>
+  `;
+  wrap.appendChild(div);
+  div.querySelector('.custom-name-input').focus();
+}
+
+// Show the tag picker UI for a row (lazy-built the first time it's opened)
+function toggleTagPicker(linkEl){
+  const row = linkEl.closest('.entry-tag-row');
+  const picker = row.querySelector('.entry-tag-picker');
+  const itemWrap = row.closest('.custom-item-wrap');
+  const acc = itemWrap.dataset.account;
+
+  if(picker.classList.contains('open')){
+    picker.classList.remove('open');
+    linkEl.style.display = '';
+    return;
+  }
+
+  linkEl.style.display = 'none';
+  picker.classList.add('open');
+  renderTagPicker(itemWrap, acc);
+}
+
+function renderTagPicker(itemWrap, acc){
+  const picker = itemWrap.querySelector('.entry-tag-picker');
+  const currentTag = itemWrap.dataset.tag || '';
+  const currentDir = itemWrap.dataset.direction || '';
+
+  picker.innerHTML = `
+    <div class="tag-combo-wrap">
+      <input type="text" class="tag-input" placeholder="Type or pick a tag…" autocomplete="off"
+        value="${escapeHtml(currentTag)}"
+        onfocus="openTagDropdown(this)"
+        oninput="openTagDropdown(this); this.closest('.custom-item-wrap').dataset.tag=this.value.trim()"
+        onblur="commitTag(this)">
+      <div class="tag-dropdown"></div>
+    </div>
+    <div class="direction-toggle">
+      <button type="button" class="direction-btn in ${currentDir==='in'?'active in':''}" onclick="setDirection(this,'in')">↓ in</button>
+      <button type="button" class="direction-btn out ${currentDir==='out'?'active out':''}" onclick="setDirection(this,'out')">↑ out</button>
+    </div>
+    <span class="tag-toggle-link" onclick="closeTagPicker(this)" style="color:var(--text-faint)">done</span>
+  `;
+}
+
+function openTagDropdown(inputEl){
+  const dd = inputEl.closest('.tag-combo-wrap').querySelector('.tag-dropdown');
+  const tags = getTagBankGlobal();
+  if(!tags.length){
+    dd.innerHTML = '<div class="combo-empty">No saved tags yet — type one and it\'ll be remembered.</div>';
+  } else {
+    dd.innerHTML = tags.map(t=>`
+      <div class="tag-option" onmousedown="event.preventDefault();selectTagOption(this,'${escapeJs(t)}')">
+        <span>${escapeHtml(t)}</span>
+        <span class="combo-option-delete" onmousedown="event.preventDefault();event.stopPropagation();removeGlobalTag('${escapeJs(t)}',event)">✕</span>
+      </div>
+    `).join('');
+  }
+  dd.classList.add('open');
+}
+
+function selectTagOption(optEl, tag){
+  const wrap = optEl.closest('.tag-combo-wrap');
+  const input = wrap.querySelector('.tag-input');
+  input.value = tag;
+  input.closest('.custom-item-wrap').dataset.tag = tag;
+  wrap.querySelector('.tag-dropdown').classList.remove('open');
+}
+
+function commitTag(inputEl){
+  setTimeout(()=>{
+    inputEl.closest('.tag-combo-wrap').querySelector('.tag-dropdown').classList.remove('open');
+  }, 120);
+  const tag = inputEl.value.trim();
+  const itemWrap = inputEl.closest('.custom-item-wrap');
+  itemWrap.dataset.tag = tag;
+  if(tag) addGlobalTag(tag);
+}
+
+function setDirection(btn, dir){
+  const itemWrap = btn.closest('.custom-item-wrap');
+  const allBtns = itemWrap.querySelectorAll('.direction-btn');
+  const isAlreadyActive = btn.classList.contains('active');
+  allBtns.forEach(b=>b.classList.remove('active','in','out'));
+  if(isAlreadyActive){
+    itemWrap.dataset.direction = '';
+  } else {
+    btn.classList.add('active', dir);
+    itemWrap.dataset.direction = dir;
+  }
+}
+
+function closeTagPicker(linkEl){
+  const row = linkEl.closest('.entry-tag-row');
+  row.querySelector('.entry-tag-picker').classList.remove('open');
+  row.querySelector('.tag-toggle-link').style.display = '';
+}
+
+// ─── GLOBAL TAG BANK (shared across T/E/R, since a tag like "discretionary"
+// applies the same way no matter which account the entry lives in) ───
+function getTagBankGlobal(){
+  return JSON.parse(localStorage.getItem('bank-tags')||'[]');
+}
+function addGlobalTag(tag){
+  if(!tag) return;
+  let tags = getTagBankGlobal();
+  if(!tags.some(t=>t.toLowerCase()===tag.toLowerCase())){
+    tags.push(tag);
+    localStorage.setItem('bank-tags', JSON.stringify(tags));
+    callSheet('addBankLabel', {acc:'TAGS', label:tag});
+  }
+}
+function removeGlobalTag(tag, evt){
+  evt.stopPropagation();
+  let tags = getTagBankGlobal().filter(t=>t!==tag);
+  localStorage.setItem('bank-tags', JSON.stringify(tags));
+  document.querySelectorAll('.tag-dropdown.open').forEach(dd=>dd.classList.remove('open'));
+  callSheet('removeBankLabel', {acc:'TAGS', label:tag});
+}
+
+// ─── GATHER FORM DATA ───
+function gatherData(){
+  const data = {};
+  data.id = currentEditId || ('e'+Date.now()+Math.random().toString(36).slice(2,7));
+  data.goal = document.getElementById('mainGoal').value.trim();
+  data.tomorrow = document.getElementById('tomorrow').value.trim();
+  data.date = currentEditDate || new Date().toISOString();
+  data.updatedAt = new Date().toISOString();
+
+  ['T','E','R'].forEach(acc=>{
+    const rows = document.querySelectorAll(`#custom-${acc} .custom-item-wrap`);
+    const entries = [];
+    let total=0, goalTotal=0;
+    rows.forEach(row=>{
+      const label = row.querySelector('.custom-name-input')?.value?.trim()||'';
+      const val = getVal(row.querySelector('.num-input'));
+      const isGoal = row.querySelector('.goal-flag').classList.contains('active');
+      const tag = row.dataset.tag || '';
+      const direction = row.dataset.direction || '';
+      if(label || val>0){
+        entries.push({label: label||'—', val, goal:isGoal, tag, direction});
+        total += val;
+        if(isGoal) goalTotal += val;
+      }
+    });
+
+    const note = document.getElementById('note-'+acc)?.value?.trim()||'';
+    const pct = total>0 ? Math.round((goalTotal/total)*100) : 0;
+
+    data[acc] = {goal:goalTotal, total, entries, note, pct};
+  });
+
+  const valids = ['T','E','R'].filter(a=>data[a].total>0);
+  data.score = valids.length>0
+    ? Math.round(valids.reduce((a,acc)=>a+data[acc].pct,0)/valids.length)
+    : 0;
+
+  return data;
+}
+
+// ─── SAVE (handles both new day and editing an existing day) ───
+let currentEditId = null;
+let currentEditDate = null;
+
+function saveEntry(){
+  const data = gatherData();
+  if(!data.goal){ showToast('Set your North Star goal first'); return; }
+
+  ['T','E','R'].forEach(acc=>{
+    (data[acc].entries||[]).forEach(item=>{
+      if(item.label && item.label!=='—') addToBank(acc, item.label);
+    });
+  });
+
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+
+  if(currentEditId){
+    const idx = logs.findIndex(l=>l.id===currentEditId);
+    if(idx>-1){ logs[idx] = data; }
+    else { logs.unshift(data); }
+    showToast('Entry updated.');
+  } else {
+    logs.unshift(data);
+    showToast('Day sealed. Rest well.');
+  }
+
+  localStorage.setItem('three-accounts-v3', JSON.stringify(logs.slice(0,365)));
+
+  // Push this entry to the Sheet in the background. The app already
+  // saved locally, so this never blocks the UI — it just syncs quietly.
+  callSheet('saveEntry', data);
+
+  currentEditId = null;
+  currentEditDate = null;
+  updateFormModeUI();
+
+  setTimeout(()=>showView('log'), 1000);
+}
+
+// ─── CLEAR ───
+function clearForm(){
+  document.getElementById('mainGoal').value='';
+  document.getElementById('tomorrow').value='';
+  ['T','E','R'].forEach(acc=>{
+    document.getElementById('custom-'+acc).innerHTML='';
+    document.getElementById('note-'+acc).value='';
+    document.getElementById(acc+'-total-display').textContent = acc==='T'?'0h':'0';
+    document.getElementById(acc+'-goal-display').textContent = acc==='T'?'0h':'0';
+    document.getElementById('bar-'+acc).style.width='0%';
+    document.getElementById('bgval-'+acc).textContent='0 / 0';
+    document.getElementById('bpct-'+acc).textContent='0%';
+  });
+  const el = document.getElementById('score-main');
+  el.textContent='—'; el.style.color='var(--gold)';
+  currentEditId = null;
+  currentEditDate = null;
+  updateFormModeUI();
+}
+
+// ─── EDIT MODE ───
+function updateFormModeUI(){
+  const banner = document.getElementById('edit-banner');
+  const saveBtn = document.getElementById('save-btn-label');
+  if(currentEditId){
+    banner.style.display='flex';
+    const d = new Date(currentEditDate);
+    banner.querySelector('.edit-banner-text').textContent =
+      'Editing entry from ' + d.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    saveBtn.textContent = 'Update Entry ↗';
+  } else {
+    banner.style.display='none';
+    saveBtn.textContent = 'Seal the Day ↗';
+  }
+}
+
+function loadEntryForEdit(idx){
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+  const entry = logs[idx];
+  if(!entry) return;
+
+  clearForm();
+  currentEditId = entry.id || null;
+  currentEditDate = entry.date;
+
+  document.getElementById('mainGoal').value = entry.goal||'';
+  document.getElementById('tomorrow').value = entry.tomorrow||'';
+
+  ['T','E','R'].forEach(acc=>{
+    document.getElementById('note-'+acc).value = entry[acc]?.note||'';
+    (entry[acc]?.entries||[]).forEach(item=>{
+      addCustomTaskWithData(acc, item.label, item.val, item.goal, item.tag, item.direction);
+    });
+  });
+
+  updateTotals();
+  updateFormModeUI();
+  showView('log-form');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function cancelEdit(){
+  clearForm();
+  showToast('Edit cancelled.');
+}
+
+// Like addCustomTask but pre-fills values (used when loading a saved entry)
+function addCustomTaskWithData(acc, label, val, isGoal, tag, direction){
+  const wrap = document.getElementById('custom-'+acc);
+  const unit = acc==='T'?'hrs':'/10';
+  const maxVal = acc==='T'?24:10;
+  const div = document.createElement('div');
+  div.className = 'custom-item-wrap';
+  div.dataset.account = acc;
+  div.dataset.tag = tag||'';
+  div.dataset.direction = direction||'';
+  div.innerHTML = `
+    <div class="custom-item">
+      <button class="goal-flag${isGoal?' active':''}" title="Mark as toward Main Goal" onclick="toggleGoalFlag(this)"></button>
+      <div class="combo-wrap">
+        <input type="text" class="custom-name-input" placeholder="Type or pick an entry…"
+          autocomplete="off" value="${escapeHtml(label==='—'?'':label)}"
+          onfocus="openDropdown('${acc}', this)"
+          oninput="openDropdown('${acc}', this)"
+          onblur="closeDropdownsDelayed('${acc}', this)">
+        <span class="combo-caret">▾</span>
+        <div class="combo-dropdown"></div>
+      </div>
+      <div class="num-input-wrap">
+        <input type="number" class="num-input" min="0" max="${maxVal}" step="0.5"
+          placeholder="0" value="${val||''}" oninput="updateTotals()">
+        <span class="num-unit">${unit}</span>
+      </div>
+      <button class="remove-btn" onclick="this.closest('.custom-item-wrap').remove();updateTotals()">✕</button>
+    </div>
+    <div class="entry-tag-row">
+      <span class="tag-toggle-link" onclick="toggleTagPicker(this)" style="${tag?'display:none':''}">+ tag for a weekly/monthly/yearly goal</span>
+      <div class="entry-tag-picker${tag?' open':''}"></div>
+    </div>
+  `;
+  wrap.appendChild(div);
+  if(tag) renderTagPicker(div, acc);
+}
+
+// ─── RENDER LOG ───
+function renderLog(){
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+  const container = document.getElementById('logEntries');
+  document.getElementById('log-count').textContent = logs.length+' entr'+(logs.length===1?'y':'ies');
+
+  if(!logs.length){
+    container.innerHTML='<div class="empty-state">No entries yet. Seal your first day to begin the record.</div>';
+    return;
+  }
+
+  container.innerHTML = logs.map((entry,idx)=>{
+    const d = new Date(entry.date);
+    const dStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'2-digit'}).toUpperCase();
+    const scoreColor = entry.score>=60?'var(--E)':entry.score>=35?'var(--gold)':'var(--R)';
+
+    const buildTasks = (acc) => {
+      const items = (entry[acc]?.entries||[]).filter(i=>i.val>0);
+      if(!items.length) return '';
+      const pills = items.map(i=>{
+        const tagBadge = i.tag ? ` <span style="color:var(--gold-dim)">#${escapeHtml(i.tag)}${i.direction?(i.direction==='in'?' ↓':' ↑'):''}</span>` : '';
+        return `<span class="log-task-item">${i.goal?'★ ':''}${escapeHtml(i.label)} · ${i.val}${tagBadge}</span>`;
+      }).join('');
+      return `<div class="log-tasks-section">
+        <span class="log-tasks-label">${acc==='T'?'Time':acc==='E'?'Energy':'Resources'}</span>
+        <div class="log-task-list">${pills}</div>
+      </div>`;
+    };
+
+    const notes = ['T','E','R'].filter(a=>entry[a]?.note).map(a=>`
+      <div class="log-note-item">
+        <span class="log-note-label">${a==='T'?'Time':a==='E'?'Energy':'Resources'}</span>
+        ${escapeHtml(entry[a].note)}
+      </div>`).join('');
+
+    const tmrw = entry.tomorrow ? `<div class="log-note-item" style="margin-top:8px;color:var(--gold-dim)">
+      <span class="log-note-label">Tomorrow</span>${escapeHtml(entry.tomorrow)}</div>` : '';
+
+    return `<div class="log-entry-card" id="entry-${idx}" onclick="toggleEntry(${idx})">
+      <div class="log-entry-header">
+        <div class="log-date-wrap">
+          <div class="log-date-main">${dStr}</div>
+          <div class="log-goal-text">${escapeHtml(entry.goal)}</div>
+        </div>
+        <div>
+          <div class="log-score-badge" style="color:${scoreColor}">${entry.score}%</div>
+          <div class="log-score-sub">aligned</div>
+        </div>
+      </div>
+      <div class="log-entry-body">
+        <div class="log-pills">
+          <span class="log-pill pill-T">◷ ${entry.T?.goal||0}h / ${entry.T?.total||0}h</span>
+          <span class="log-pill pill-E">◈ ${entry.E?.goal||0} / ${entry.E?.total||0}</span>
+          <span class="log-pill pill-R">◎ ${entry.R?.goal||0} / ${entry.R?.total||0}</span>
+        </div>
+        ${buildTasks('T')}
+        ${buildTasks('E')}
+        ${buildTasks('R')}
+        ${notes||tmrw ? `<div class="log-notes-section" style="margin-top:12px">${notes}${tmrw}</div>` : ''}
+        <button class="edit-entry-btn" onclick="event.stopPropagation();loadEntryForEdit(${idx})">✎ Edit this day</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEntry(idx){
+  document.getElementById('entry-'+idx).classList.toggle('expanded');
+}
+
+// ─── RENDER PATTERNS (pure self-data, no goal filter) ───
+function renderStats(){
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+  document.getElementById('stat-entries').textContent = logs.length;
+
+  if(!logs.length){
+    document.getElementById('stat-avg-time').textContent='—';
+    document.getElementById('stat-avg-energy').textContent='—';
+    document.getElementById('trendBars').innerHTML='<div class="empty-state" style="width:100%;border:none">Start logging to see your pattern.</div>';
+    document.getElementById('topEntriesGrid').innerHTML='<div class="empty-state" style="width:100%;border:none">Start logging to see your most frequent activities.</div>';
+    return;
+  }
+
+  const avgTime = (logs.reduce((a,l)=>a+(l.T?.total||0),0)/logs.length).toFixed(1);
+  const avgEnergy = (logs.reduce((a,l)=>a+(l.E?.total||0),0)/logs.length).toFixed(1);
+  document.getElementById('stat-avg-time').textContent = avgTime+'h';
+  document.getElementById('stat-avg-energy').textContent = avgEnergy;
+
+  // Daily totals trend (Time hours, just as a volume indicator — not goal-scored)
+  const recent = logs.slice(0,14).reverse();
+  const maxTotal = Math.max(...recent.map(e=>e.T?.total||0), 1);
+  const barsHTML = recent.map(entry=>{
+    const d = new Date(entry.date);
+    const dStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+    const total = entry.T?.total||0;
+    const h = Math.round((total/maxTotal)*100);
+    return `<div class="chart-bar-col">
+      <div class="chart-bar" style="height:${Math.max(h,2)}%;background:var(--T);opacity:0.7"></div>
+      <span class="chart-date-label">${dStr}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('trendBars').innerHTML = barsHTML;
+
+  // Most recurring entries per account (pure frequency/volume, no goal weighting)
+  const grid = document.getElementById('topEntriesGrid');
+  const accColors = {T:'var(--T)', E:'var(--E)', R:'var(--R)'};
+  const accNames = {T:'Time', E:'Energy', R:'Resources'};
+  grid.innerHTML = ['T','E','R'].map(acc=>{
+    const totals = {};
+    logs.forEach(l=>{
+      (l[acc]?.entries||[]).forEach(item=>{
+        if(item.label && item.label!=='—' && item.val>0){
+          totals[item.label] = (totals[item.label]||0) + item.val;
+        }
+      });
+    });
+    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const rows = sorted.length
+      ? sorted.map(([label,val])=>`<div class="top-entry-row"><span class="top-entry-name">${escapeHtml(label)}</span><span class="top-entry-val">${val.toFixed(1)}</span></div>`).join('')
+      : '<div class="top-entry-row" style="border:none"><span class="top-entry-name" style="color:var(--text-faint);font-style:italic">No entries yet</span></div>';
+    return `<div class="top-entries-col">
+      <span class="top-entries-col-label" style="color:${accColors[acc]}">${accNames[acc]}</span>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// ─── GOALS VIEW (strategic layer, separate from Patterns) ───
+// ════════════════════════════════════════════════
+
+function renderGoalsView(){
+  renderDailyGoalSection();
+  renderWeeklyGoalsList();
+  renderYearlyGoalsList();
+}
+
+// ── DAILY TIER (reuses the existing per-entry goal flag) ──
+function renderDailyGoalSection(){
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+
+  if(!logs.length){
+    document.getElementById('stat-avg-score').textContent='—';
+    document.getElementById('stat-best').textContent='—';
+    document.getElementById('stat-today-score').textContent='—';
+    document.getElementById('goalTrendBars').innerHTML='<div class="empty-state" style="width:100%;border:none">Start logging to see your alignment trend.</div>';
+    return;
+  }
+
+  const avg = Math.round(logs.reduce((a,l)=>a+l.score,0)/logs.length);
+  document.getElementById('stat-avg-score').textContent = avg+'%';
+
+  const best = Math.max(...logs.map(l=>l.score));
+  document.getElementById('stat-best').textContent = best+'%';
+
+  const todayStr = new Date().toDateString();
+  const todayEntry = logs.find(l=>new Date(l.date).toDateString()===todayStr);
+  document.getElementById('stat-today-score').textContent = todayEntry ? todayEntry.score+'%' : '—';
+
+  const recent = logs.slice(0,14).reverse();
+  const barsHTML = recent.map(entry=>{
+    const d = new Date(entry.date);
+    const dStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+    const h = Math.max(Math.round((entry.score/100)*100), 2);
+    const color = entry.score>=60?'var(--E)':entry.score>=35?'var(--gold)':'var(--R)';
+    return `<div class="chart-bar-col">
+      <div class="chart-bar" style="height:${h}%;background:${color};opacity:0.7"></div>
+      <span class="chart-date-label">${dStr}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('goalTrendBars').innerHTML = barsHTML;
+}
+
+// ── WEEKLY / MONTHLY TIER ──
+function getWeeklyGoals(){ return JSON.parse(localStorage.getItem('goals-weekly')||'[]'); }
+function saveWeeklyGoals(goals){ localStorage.setItem('goals-weekly', JSON.stringify(goals)); }
+
+let selectedWeeklyDirection = 'down';
+function selectWeeklyDirection(btn){
+  document.querySelectorAll('#weeklyDirectionToggle .direction-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedWeeklyDirection = btn.dataset.dir;
+}
+
+function openTagDropdownStandalone(inputEl){
+  const dd = document.getElementById('weeklyTagDropdown');
+  const tags = getTagBankGlobal();
+  if(!tags.length){
+    dd.innerHTML = '<div class="combo-empty">No tags saved yet — tag entries on the Today page first.</div>';
+  } else {
+    dd.innerHTML = tags.map(t=>`
+      <div class="tag-option" onmousedown="event.preventDefault();document.getElementById('newWeeklyGoalTag').value='${escapeJs(t)}';this.closest('.tag-dropdown').classList.remove('open')">
+        <span>${escapeHtml(t)}</span>
+      </div>
+    `).join('');
+  }
+  dd.classList.add('open');
+  setTimeout(()=>{
+    document.addEventListener('click', function closeOnce(e){
+      if(!e.target.closest('#weeklyTagDropdown') && !e.target.closest('#newWeeklyGoalTag')){
+        dd.classList.remove('open');
+        document.removeEventListener('click', closeOnce);
+      }
+    });
+  },0);
+}
+
+function saveWeeklyGoal(){
+  const name = document.getElementById('newWeeklyGoalName').value.trim();
+  const tag = document.getElementById('newWeeklyGoalTag').value.trim();
+  if(!name || !tag){ showToast('Enter both a goal name and a tag to track'); return; }
+
+  const goals = getWeeklyGoals();
+  const newGoal = {
+    id: 'wg'+Date.now(),
+    name, tag,
+    direction: selectedWeeklyDirection,
+    createdAt: new Date().toISOString(),
+    active: true
+  };
+  goals.push(newGoal);
+  saveWeeklyGoals(goals);
+  callSheet('saveWeeklyGoal', newGoal);
+  if(tag) addGlobalTag(tag);
+
+  document.getElementById('newWeeklyGoalName').value='';
+  document.getElementById('newWeeklyGoalTag').value='';
+  showToast('Goal saved: '+name);
+  renderWeeklyGoalsList();
+}
+
+function deleteWeeklyGoal(id){
+  saveWeeklyGoals(getWeeklyGoals().filter(g=>g.id!==id));
+  callSheet('deleteWeeklyGoal', {id});
+  renderWeeklyGoalsList();
+}
+
+function sumTagInWindow(tag, days){
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate()-days);
+  let sum = 0;
+  logs.forEach(l=>{
+    if(new Date(l.date) < cutoff) return;
+    ['T','E','R'].forEach(acc=>{
+      (l[acc]?.entries||[]).forEach(item=>{
+        if(item.tag && item.tag.toLowerCase()===tag.toLowerCase()) sum += item.val;
+      });
+    });
+  });
+  return sum;
+}
+
+function renderWeeklyGoalsList(){
+  const goals = getWeeklyGoals();
+  const container = document.getElementById('weeklyGoalsList');
+  if(!goals.length){
+    container.innerHTML = '<div class="empty-state" style="border:none">No weekly/monthly goals saved yet.</div>';
+    return;
+  }
+
+  container.innerHTML = goals.map(g=>{
+    const thisWeek = sumTagInWindow(g.tag, 7);
+    const lastWeek7to14 = sumTagInWindow(g.tag, 14) - thisWeek;
+    const improving = g.direction==='down' ? thisWeek < lastWeek7to14 : thisWeek > lastWeek7to14;
+    const trendColor = lastWeek7to14===0 ? 'var(--text-dim)' : (improving ? 'var(--E)' : 'var(--R)');
+    const trendArrow = lastWeek7to14===0 ? '—' : (thisWeek===lastWeek7to14 ? '→' : (thisWeek>lastWeek7to14?'↑':'↓'));
+
+    return `<div class="goal-card">
+      <div class="goal-card-info">
+        <div class="goal-card-name">${escapeHtml(g.name)}</div>
+        <div class="goal-card-meta">#${escapeHtml(g.tag)} · ${g.direction==='down'?'aiming down':'aiming up'}</div>
+      </div>
+      <div class="goal-card-progress">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim)">7d: <strong style="color:var(--white)">${thisWeek.toFixed(1)}</strong></span>
+        <span style="color:${trendColor};font-size:14px">${trendArrow}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-faint)">prev 7d: ${lastWeek7to14.toFixed(1)}</span>
+      </div>
+      <div class="goal-card-actions">
+        <button class="remove-btn" onclick="deleteWeeklyGoal('${g.id}')" title="Delete goal">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── YEARLY / LONG-TERM TIER ──
+function getYearlyGoals(){ return JSON.parse(localStorage.getItem('goals-yearly')||'[]'); }
+function saveYearlyGoals(goals){ localStorage.setItem('goals-yearly', JSON.stringify(goals)); }
+
+function saveYearlyGoal(){
+  const name = document.getElementById('newYearlyGoalName').value.trim();
+  const target = parseFloat(document.getElementById('newYearlyGoalTarget').value);
+  const unit = document.getElementById('newYearlyGoalUnit').value.trim() || '';
+  if(!name || !target){ showToast('Enter a goal name and a target amount'); return; }
+
+  const goals = getYearlyGoals();
+  const newGoal = {
+    id:'yg'+Date.now(),
+    name, target, unit,
+    current: 0,
+    createdAt: new Date().toISOString()
+  };
+  goals.push(newGoal);
+  saveYearlyGoals(goals);
+  callSheet('saveYearlyGoal', newGoal);
+
+  document.getElementById('newYearlyGoalName').value='';
+  document.getElementById('newYearlyGoalTarget').value='';
+  document.getElementById('newYearlyGoalUnit').value='';
+  showToast('Goal saved: '+name);
+  renderYearlyGoalsList();
+}
+
+function updateYearlyGoalValue(id, inputEl){
+  const goals = getYearlyGoals();
+  const g = goals.find(x=>x.id===id);
+  if(!g) return;
+  g.current = parseFloat(inputEl.value)||0;
+  saveYearlyGoals(goals);
+  callSheet('updateYearlyGoal', {id, current:g.current});
+  renderYearlyGoalsList();
+  showToast('Updated: '+g.name);
+}
+
+function deleteYearlyGoal(id){
+  saveYearlyGoals(getYearlyGoals().filter(g=>g.id!==id));
+  callSheet('deleteYearlyGoal', {id});
+  renderYearlyGoalsList();
+}
+
+function renderYearlyGoalsList(){
+  const goals = getYearlyGoals();
+  const container = document.getElementById('yearlyGoalsList');
+  if(!goals.length){
+    container.innerHTML = '<div class="empty-state" style="border:none">No yearly goals saved yet.</div>';
+    return;
+  }
+
+  container.innerHTML = goals.map(g=>{
+    const pct = g.target>0 ? Math.min(Math.round((g.current/g.target)*100),100) : 0;
+    return `<div class="goal-card">
+      <div class="goal-card-info">
+        <div class="goal-card-name">${escapeHtml(g.name)}</div>
+        <div class="goal-card-meta">Target: ${g.target}${g.unit?(' '+escapeHtml(g.unit)):''}</div>
+      </div>
+      <div class="goal-card-progress">
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--gold)"></div></div>
+        <span class="goal-card-pct">${pct}%</span>
+      </div>
+      <div class="goal-card-actions">
+        <input type="number" class="goal-card-value-input" value="${g.current}" placeholder="Current"
+          onchange="updateYearlyGoalValue('${g.id}', this)">
+        <button class="remove-btn" onclick="deleteYearlyGoal('${g.id}')" title="Delete goal">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── EXCEL EXPORT ───
+function exportToExcel(){
+  const logs = JSON.parse(localStorage.getItem('three-accounts-v3')||'[]');
+  if(!logs.length){ showToast('No entries to export yet'); return; }
+
+  // Sheet 1: Daily Summary
+  const summaryRows = logs.slice().reverse().map(entry=>{
+    const d = new Date(entry.date);
+    return {
+      'Date': d.toLocaleDateString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit'}),
+      'Day': d.toLocaleDateString('en-GB',{weekday:'long'}),
+      'Main Goal': entry.goal,
+      'Time Total (hrs)': entry.T?.total||0,
+      'Time → Goal (hrs)': entry.T?.goal||0,
+      'Time Alignment %': entry.T?.pct||0,
+      'Energy Total (/10)': entry.E?.total||0,
+      'Energy → Goal (/10)': entry.E?.goal||0,
+      'Energy Alignment %': entry.E?.pct||0,
+      'Resources Total (/10)': entry.R?.total||0,
+      'Resources → Goal (/10)': entry.R?.goal||0,
+      'Resources Alignment %': entry.R?.pct||0,
+      'Overall Alignment Score %': entry.score,
+      'Tomorrow Intention': entry.tomorrow||'',
+      'Time Notes': entry.T?.note||'',
+      'Energy Notes': entry.E?.note||'',
+      'Resources Notes': entry.R?.note||''
+    };
+  });
+
+  // Sheet 2: Task-level detail (one row per task entry, across all days)
+  const detailRows = [];
+  logs.slice().reverse().forEach(entry=>{
+    const d = new Date(entry.date);
+    const dateStr = d.toLocaleDateString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit'});
+    ['T','E','R'].forEach(acc=>{
+      const accName = acc==='T'?'Time':acc==='E'?'Energy':'Resources';
+      (entry[acc]?.entries||[]).forEach(item=>{
+        if(item.val>0 || item.label!=='—'){
+          detailRows.push({
+            'Date': dateStr,
+            'Account': accName,
+            'Task / Entry': item.label,
+            'Value': item.val,
+            'Toward Main Goal': item.goal ? 'Yes' : 'No',
+            'Tag': item.tag||'',
+            'Direction': item.direction||'',
+            'Main Goal That Day': entry.goal
+          });
+        }
+      });
+    });
+  });
+
+  // Sheet 3: Saved Goals (weekly/monthly + yearly)
+  const weeklyGoals = getWeeklyGoals();
+  const yearlyGoals = getYearlyGoals();
+  const goalRows = [
+    ...weeklyGoals.map(g=>({
+      'Tier': 'Weekly/Monthly',
+      'Goal Name': g.name,
+      'Tracks Tag': g.tag,
+      'Direction': g.direction==='down'?'Reduce':'Grow',
+      'Target': '',
+      'Current': '',
+      'Created': new Date(g.createdAt).toLocaleDateString('en-GB')
+    })),
+    ...yearlyGoals.map(g=>({
+      'Tier': 'Yearly/Long-Term',
+      'Goal Name': g.name,
+      'Tracks Tag': '',
+      'Direction': '',
+      'Target': g.target+(g.unit?(' '+g.unit):''),
+      'Current': g.current+(g.unit?(' '+g.unit):''),
+      'Created': new Date(g.createdAt).toLocaleDateString('en-GB')
+    }))
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.json_to_sheet(summaryRows);
+  const ws2 = XLSX.utils.json_to_sheet(detailRows);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Daily Summary');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Task Detail');
+  if(goalRows.length){
+    const ws3 = XLSX.utils.json_to_sheet(goalRows);
+    XLSX.utils.book_append_sheet(wb, ws3, 'Saved Goals');
+  }
+
+  const fname = 'three-accounts-export-'+new Date().toISOString().slice(0,10)+'.xlsx';
+  XLSX.writeFile(wb, fname);
+  showToast('Exported '+fname);
+}
+
+// ─── TOAST ───
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ─── GLOBAL: close dropdowns on outside click ───
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.combo-wrap')){
+    document.querySelectorAll('.combo-dropdown.open').forEach(dd=>dd.classList.remove('open'));
+  }
+});
+
+// ─── INIT ───
+updateTotals();
+updateFormModeUI();
+refreshSyncStatusFromUrl();
+if(scriptUrl) pullFromSheet(false); // silent background sync on load
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').then((reg)=>{
+      // Actively ask the browser to check for a newer sw.js right now,
+      // instead of waiting for its own schedule.
+      reg.update().catch(()=>{});
+
+      // If a new service worker takes control while we're open
+      // (i.e. a fresh version was just installed), reload once so the
+      // app shell currently on screen matches what's now cached.
+      let hasReloaded = sessionStorage.getItem('sw-reloaded-once');
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+        if(!hasReloaded){
+          sessionStorage.setItem('sw-reloaded-once','1');
+          window.location.reload();
+        }
+      });
+    }).catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
